@@ -4,17 +4,19 @@ import fs, { readdirSync } from "node:fs";
 import config from "./config.js";
 import { Client, Intents, Collection, CommandInteractionOptionResolver } from "discord.js";
 
-let guildId = "718378444844433409";
-let clientId = "771427732294074379";
+let guildId = "";
+let clientId = "";
 let token = config.token;
+let commandDirectoryFull = ""
+let commandDirectoryFromFile = ""
 
 let commands = [];
 let permissions = [];
-let dirs = readdirSync("./src/commands");
+let dirs = readdirSync(commandDirectory);
 for(const dir of dirs) {
-    const commandFiles = readdirSync(`./src/commands/${dir}`).filter(file => file.endsWith(".js"));
+    const commandFiles = readdirSync(`${commandDirectory}/${dir}`).filter(file => file.endsWith(".js"));
     for(const file of commandFiles) {
-        let command = await import(`./commands/${dir}/${file}`)
+        let command = await import(`${commandDirectoryFromFile}/${dir}/${file}`)
         command = command.default;
         if(command.permissions) command.data.defaultPermission = false;
         commands.push(command.data.toJSON());
@@ -46,9 +48,9 @@ client.login(token);
 client.commands = new Collection();
 
 for(const dir of dirs) {
-    const commandFiles = readdirSync(`./src/commands/${dir}`).filter(file => file.endsWith(".js"));
+    const commandFiles = readdirSync(`${commandDirectory}/${dir}`).filter(file => file.endsWith(".js"));
     for(const file of commandFiles) {
-        let command = await import(`./commands/${dir}/${file}`)
+        let command = await import(`${commandDirectoryFromFile}/${dir}/${file}`)
         command = command.default;
         client.commands.set(command.data.name, command);
     }
@@ -57,7 +59,7 @@ for(const dir of dirs) {
 client.on("ready", async () => {
     console.log(`${client.user.username} is ONLINE`);
 
-    let guild = await client.guilds.fetch(`718378444844433409`);
+    let guild = await client.guilds.fetch(`${guildId}`);
     let cmds = await guild.commands.fetch();
     cmds.each(async (cmd) => {
         let { permission } = permissions.find((p) => p.name == cmd.name);
